@@ -16,8 +16,8 @@ $ java -jar "ipfinder/dist/semestralka.jar" file1 file2 ...
 ```
 
 Example output:
-Surf Interest Points Finder:
 ```sh
+Surf Interest Points Finder:
 446.79404 37.28289
 446.19263 45.850067
 451.79227 48.068607
