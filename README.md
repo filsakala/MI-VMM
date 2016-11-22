@@ -15,6 +15,17 @@ It contains 2 main parts:
 $ java -jar "ipfinder/dist/semestralka.jar" file1 file2 ...
 ```
 
+Example output:
+Surf Interest Points Finder:
+```sh
+446.79404 37.28289
+446.19263 45.850067
+451.79227 48.068607
+462.39285 52.582752
+354.75287 53.189285
+448.75555 59.47033
+```
+
 2. Web app
  1. Rails installation (gems, ...)
  2. Run rails server
