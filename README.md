@@ -7,7 +7,7 @@ It contains 2 main parts:
 * Interest points finder (folder ipfinder)
 * IP matching & Web app (folder ipmatching)
  * Ruby on Rails app
- * This app will call ipfinder on every upload in order to get Interest Points for new pictures.
+ * This app will call ipfinder on every uploaded picture in order to get Interest Points.
  
 ## How to run
 1. Interest point finder
