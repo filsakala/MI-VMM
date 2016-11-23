@@ -1,0 +1,11 @@
+<p id="notice"><%= notice %></p>
+
+<%= image_tag @picture.image.url, width: '200px' %>
+
+<ul>
+  <% Picture.all.each do |p| %>
+      <li>Podobnosť s <%= link_to "obrázkom s id  #{p.id}", p %> je <%= @picture.match(p, 0.9) %></li>
+  <% end %>
+</ul>
+<%= link_to 'Edit', edit_picture_path(@picture) %> |
+<%= link_to 'Back', pictures_path %>
