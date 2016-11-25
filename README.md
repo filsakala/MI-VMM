@@ -4,15 +4,16 @@ Picture similarity retrieval with SURF
 =======
 ## This is semestral project for subject MI-VMM@FIT-CTU
 It contains 2 main parts:
-* Interest points finder (folder ipfinder)
+* Interest points finder (folder ipmatching/public/ipfinder)
+ * jopensurf library (https://code.google.com/archive/p/jopensurf)
 * IP matching & Web app (folder ipmatching)
  * Ruby on Rails app
  * This app will call ipfinder on every uploaded picture in order to get Interest Points.
  
-## How to run
+## Usage
 1. Interest point finder
 ```sh
-$ java -jar "ipfinder/dist/semestralka.jar" file1 file2 ...
+$ java -jar "ipmatching/public/ipfinder/dist/semestralka.jar" file1 file2 ...
 ```
 
 Example output:
@@ -24,6 +25,7 @@ Surf Interest Points Finder:
 462.39285 52.582752
 354.75287 53.189285
 448.75555 59.47033
+...
 ```
 
 2. Web app
@@ -33,3 +35,5 @@ Surf Interest Points Finder:
 $ cd ipmatching
 $ rails server
 ```
+And show it in your browser (default address is localhost:3000).
+
