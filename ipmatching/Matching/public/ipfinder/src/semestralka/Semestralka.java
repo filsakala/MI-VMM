@@ -30,7 +30,7 @@ public class Semestralka {
                 List<SURFInterestPoint> pts = sm.getFreeOrientedInterestPoints();
                 for (Iterator<SURFInterestPoint> surfInterestPointIterator = pts.iterator(); surfInterestPointIterator.hasNext();) {
                     SURFInterestPoint pt = surfInterestPointIterator.next();
-                    System.out.println(pt.getX() + " " + pt.getY());
+                    System.out.println(pt.getX() + " " + pt.getY() + " " + pt.getScale());
                 }
             }
         } else {

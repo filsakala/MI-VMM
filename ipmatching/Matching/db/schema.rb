@@ -17,6 +17,7 @@ ActiveRecord::Schema.define(version: 20161123132910) do
     t.integer  "picture_id", limit: 4
     t.float    "x",          limit: 24
     t.float    "y",          limit: 24
+    t.float    "scale",      limit: 24
     t.datetime "created_at",            null: false
     t.datetime "updated_at",            null: false
   end

@@ -1,12 +1,48 @@
 <p id="notice"><%= notice %></p>
 
-<%= image_tag @picture.image.url, width: '200px' %>
+<%= link_to 'Index', pictures_path %>
 
-<ul>
+<div>
+  <%= image_tag @picture.image.url, width: '300px' %>
+</div>
+
+<h2>Euklidovská vzdialenosť</h2>
+<table>
+  <thead>
+  <tr>
+    <th>Náhľad</th>
+    <th>Počet bodov</th>
+    <th>Počet %</th>
+  </tr>
+  </thead>
+  <tbody>
   <% Picture.all.each do |p| %>
       <% result = @picture.match(p) %>
-      <li>Podobnosť s <%= link_to "obrázkom s id  #{p.id}", p %> je <%= result[:cnt] %> bodov, <%= (result[:perc] * 100).round(2) %>%</li>
+      <tr>
+        <td><%= link_to (image_tag p.image.url, width: '75px'), p %></td>
+        <td><%= result[:cnt] %> bodov
+          z <%= @picture.interest_points.count %></td>
+        <td><%= (result[:perc] * 100).round(2) %>%</td>
+      </tr>
   <% end %>
-</ul>
-<%= link_to 'Edit', edit_picture_path(@picture) %> |
-<%= link_to 'Back', pictures_path %>
+  </tbody>
+</table>
+
+<h2>SQFT</h2>
+<table>
+  <thead>
+  <tr>
+    <th>Náhľad</th>
+    <th>Počet %</th>
+  </tr>
+  </thead>
+  <tbody>
+  <% Picture.all.each do |p| %>
+      <% result = @picture.match(p) %>
+      <tr>
+        <td><%= link_to (image_tag p.image.url, width: '75px'), p %></td>
+        <td><%= (@picture.match_sqft(p) * 100).round(2) %>%</td>
+      </tr>
+  <% end %>
+  </tbody>
+</table>

@@ -4,6 +4,7 @@ class CreateInterestPoints < ActiveRecord::Migration
       t.belongs_to :picture, index: true
       t.float :x
       t.float :y
+      t.float :scale
 
       t.timestamps null: false
     end

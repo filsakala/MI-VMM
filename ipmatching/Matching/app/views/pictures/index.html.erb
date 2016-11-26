@@ -6,6 +6,8 @@
   <thead>
     <tr>
       <th>Content</th>
+      <th>IPs</th>
+      <th>Clusters</th>
       <th colspan="3"></th>
     </tr>
   </thead>
@@ -13,6 +15,9 @@
   <tbody>
     <% @pictures.each do |picture| %>
       <tr>
+        <td><%= image_tag picture.image.url, width: '75px' %></td>
+        <td><%= picture.interest_points.count %></td>
+        <td><%= picture.cluster.count %></td>
         <td><%= link_to 'Show', picture %></td>
         <td><%= link_to 'Edit', edit_picture_path(picture) %></td>
         <td><%= link_to 'Destroy', picture, method: :delete, data: { confirm: 'Are you sure?' } %></td>
