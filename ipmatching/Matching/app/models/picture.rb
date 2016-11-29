@@ -20,7 +20,7 @@ class Picture < ActiveRecord::Base
   def partial_match(my_point, other_points)
     partial_result = []
     other_points.each do |oip|
-      partial_result << Math.sqrt(((my_point.x - oip.x) * (my_point.x - oip.x))+((my_point.y - oip.y) * (my_point.y - oip.y)))
+      partial_result << euclidean_distance(my_point, oip)
     end
     partial_result.sort!
     [partial_result[0], partial_result[1]]
@@ -35,48 +35,58 @@ class Picture < ActiveRecord::Base
       end
     end
     # result[:perc] = (result[:cnt] + 0.0) / interest_points.count
-    result[:perc] = (result[:cnt] + 0.0) / [interest_points.count, other_picture.interest_points.count].max
+    # result[:perc] = (result[:cnt] + 0.0) / [interest_points.count, other_picture.interest_points.count].max
+    result[:perc] = (2 * result[:cnt] + 0.0) / (interest_points.count + other_picture.interest_points.count) # Number of connected points of both pictures together
     result
   end
 
   def match_sqft(other_picture = Picture.second)
-    cluster = cluster()
-    cluster.recalculate_centroids
-    other_cluster = other_picture.cluster
-    other_cluster.recalculate_centroids
-    a = []
-    w = []
-    me_scale_sum = cluster.centroids.sum { |c| c[:scale] }
-    other_scale_sum = other_cluster.centroids.sum { |c| c[:scale] }
-    (cluster.centroids + other_cluster.centroids).each_with_index do |ip, i|
-      (cluster.centroids + other_cluster.centroids).each_with_index do |oip, j|
-        a[i] ||= []
-        a[i][j] = 1 / (1 + Math.sqrt(((ip[:x] - oip[:x]) ** 2)+((ip[:y] - oip[:y]) ** 2)))
+    if self != other_picture
+      cluster = cluster()
+      cluster.recalculate_centroids
+      other_cluster = other_picture.cluster
+      other_cluster.recalculate_centroids
+      a = []
+      w = []
+      cluster_size = cluster.centroids.sum { |c| c[:size] }
+      other_cluster_size = other_cluster.centroids.sum { |c| c[:size] }
+
+      (cluster.centroids + other_cluster.centroids).each_with_index do |ip, i|
+        (cluster.centroids + other_cluster.centroids).each_with_index do |oip, j|
+          a[i] ||= []
+          a[i][j] = 1 / (1 + Math.sqrt(((ip[:point].x - oip[:point].x) ** 2)+((ip[:point].y - oip[:point].y) ** 2)))
+        end
       end
+
+      cluster.centroids.each_with_index do |ip, i|
+        w[i] = (0.0 + ip[:size]) / cluster_size
+      end
+
+      ips_cnt = w.size
+      other_cluster.centroids.each_with_index do |oip, j|
+        w[ips_cnt + j] = (0.0 - oip[:size]) / other_cluster_size
+      end
+
+      am = Matrix.columns(a)
+      wmt = Matrix.column_vector(w)
+      wm = wmt.transpose
+      # raise "rc: #{am.row_count}, cc: #{am.column_count}, wm rc: #{wm.row_count} cc:  #{wm.column_count}, wmt rc: #{wmt.row_count} cc:  #{wmt.column_count}"
+      return Math.sqrt((wm * am * wmt)[0, 0].abs) # sometimes negative (-) inside ?!?
+    else
+      return 1
     end
-    cluster.centroids.each_with_index do |ip, i|
-      w[i] = (0.0 + ip[:scale]) / me_scale_sum
-    end
-    ips_cnt = w.size
-    other_cluster.centroids.each_with_index do |oip, j|
-      w[ips_cnt + j] = (0.0 - oip[:scale]) / other_scale_sum
-    end
-    am = Matrix.columns(a)
-    wmt = Matrix.column_vector(w)
-    wm = wmt.transpose
-    # raise "rc: #{am.row_count}, cc: #{am.column_count}, wm rc: #{wm.row_count} cc:  #{wm.column_count}, wmt rc: #{wmt.row_count} cc:  #{wmt.column_count}"
-    Math.sqrt((wm * am * wmt)[0, 0].abs) # sometimes - inside ?!?
   end
 
-  # Cluster IPS
-  def cluster
+  def euclidean_distance(a, b)
+    Math.sqrt(((a.x - b.x) ** 2)+((a.y - b.y) ** 2))
+  end
+
+  def cluster(threshold = 10)
     if !@cluster
       @cluster = Cluster.new
       interest_points.each do |ip|
         interest_points.each do |oip|
-          if ip != oip &&
-            oip.x >= (ip.x - ip.scale) && oip.x <= (ip.x + ip.scale) &&
-            oip.y >= (ip.y - ip.scale) && oip.y <= (ip.y + ip.scale) # in_cluster
+          if ip != oip && euclidean_distance(ip, oip) < threshold
             cip = @cluster.cluster_of(ip)
             coip = @cluster.cluster_of(oip)
             if cip && coip # join clusters
@@ -91,9 +101,6 @@ class Picture < ActiveRecord::Base
           end
         end
       end
-      # interest_points.each do |ip| # Body, ktore netvoria aspon par...
-      #   @cluster.add(ip) if !@cluster.cluster_of(ip) # add non-clustered points
-      # end
     end
     @cluster
   end

@@ -11,7 +11,15 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20161123132910) do
+ActiveRecord::Schema.define(version: 20161129165955) do
+
+  create_table "euclidean_distances", force: :cascade do |t|
+    t.integer  "first_point_id",  limit: 4
+    t.integer  "second_point_id", limit: 4
+    t.float    "distance",        limit: 24
+    t.datetime "created_at",                 null: false
+    t.datetime "updated_at",                 null: false
+  end
 
   create_table "interest_points", force: :cascade do |t|
     t.integer  "picture_id", limit: 4

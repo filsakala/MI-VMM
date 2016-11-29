@@ -36,21 +36,21 @@ class Cluster
     @clusters.size
   end
 
-  # counted as mean in x and y positions
+  def euclidean_distance(a, b)
+    Math.sqrt(((a.x - b.x) ** 2)+((a.y - b.y) ** 2))
+  end
+
   def recalculate_centroids
     @centroids = []
     @clusters.each do |cluster|
-      result_point = { x: 0, y: 0, scale: 0 }
-      cluster.each do |point|
-        result_point[:x] += point.x
-        result_point[:y] += point.y
-        result_point[:scale] += point.scale
+      euclidean_distances = {}
+      cluster.each do |p|
+        euclidean_distances[p] ||= 0.0
+        cluster.each do |op|
+          euclidean_distances[p] += euclidean_distance(p, op)
+        end
       end
-      result_point[:x] /= cluster.size
-      result_point[:y] /= cluster.size
-      result_point[:scale] /= cluster.size
-      # result_point[:scale] = cluster.size
-      @centroids << result_point
+      @centroids << { point: euclidean_distances.sort_by { |k, v| v }[0][0], size: cluster.size }
     end
   end
 end
