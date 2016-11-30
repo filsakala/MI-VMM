@@ -10,19 +10,42 @@ class PicturesController < ApplicationController
   # GET /pictures/1
   # GET /pictures/1.json
   def show
-    # ths = []
-    # @pictures = {}
-    # Picture.all.each do |p|
-    #   ths << Thread.new {
-    #     @pictures[p] = @picture.match(p, 0.35)
-    #   }
-    # end
-    # ths.each { |t| t.join }
+    if params[:method] == 'euclidean'
+      if @threshold.blank?
+        @threshold = 0.5
+      else
+        @threshold = params[:threshold].to_f
+      end
+      @pictures = Picture.all.to_a
+      @pictures.each do |picture|
+        picture.m = @picture.match(picture, @threshold)
+      end
+      @pictures.sort! { |x, y| y.m[:perc] <=> x.m[:perc] }
+    end
   end
 
   # GET /pictures/new
   def new
     @picture = Picture.new
+  end
+
+  def second
+    @picture = Picture.last
+    if !params[:commit].blank?
+      if !params[:threshold].blank?
+        m = 'euclidean'
+        @threshold = params[:threshold]
+        @threshold = 0.5 if @threshold.blank?
+      elsif !params[:threshold_sqft].blank?
+        m = 'sqft'
+        @threshold = params[:threshold_sqft]
+        @threshold = 10 if @threshold.blank?
+      else
+        m = 'unknown'
+        @threshold = 0
+      end
+      redirect_to picture_path(@picture, method: m, threshold: @threshold)
+    end
   end
 
   # GET /pictures/1/edit
@@ -33,16 +56,12 @@ class PicturesController < ApplicationController
   # POST /pictures.json
   def create
     @picture = Picture.new(picture_params)
-
-    respond_to do |format|
-      if @picture.save
-
-        format.html { redirect_to @picture, notice: 'Picture was successfully created.' }
-        format.json { render :show, status: :created, location: @picture }
-      else
-        format.html { render :new }
-        format.json { render json: @picture.errors, status: :unprocessable_entity }
-      end
+    if @picture.save
+      render json: { message: "success", id: @picture.id }, :status => 200
+    else
+      #  you need to send an error header, otherwise Dropzone
+      #  will not interpret the response as an error:
+      render json: { error: @picture.errors.full_messages.join(',') }, :status => 400
     end
   end
 

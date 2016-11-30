@@ -1,0 +1,29 @@
+<h1>Preview of uploaded file</h1>
+
+<div>
+  <%= image_tag @picture.image.url, width: '300px' %>
+</div>
+
+<h2>Options</h2>
+<div class="ui top attached tabular menu">
+  <a class="active item" data-tab="first">Euclidean distance</a>
+  <a class="item" data-tab="second">Signature Quadratic Form Distance</a>
+</div>
+<div class="ui bottom attached active tab segment" data-tab="first">
+  <%= form_tag nil, class: 'ui form' do %>
+      <label>Threshold:</label>
+      <input type="range" min="0" max="1" value="0.5" step="0.05" id="threshold-changer">
+      <input type="hidden" name="threshold" id="threshold" value="0.5">
+      <span class="ui teal circular label" id="write-threshold">0.5</span><br>
+      <%= submit_tag "Ďalej", class: 'ui green button' %>
+  <% end %>
+</div>
+<div class="ui bottom attached tab segment" data-tab="second">
+  <%= form_tag nil, class: 'ui form' do %>
+      <label>Threshold:</label>
+      <input type="range" min="0" max="20" value="10" step="1" id="threshold-changer-sqft">
+      <input type="hidden" name="threshold_sqft" id="threshold_sqft" value="10">
+      <span class="ui teal circular label" id="write-threshold-sqft">10</span><br>
+      <%= submit_tag "Ďalej", class: 'ui green button' %>
+  <% end %>
+</div>

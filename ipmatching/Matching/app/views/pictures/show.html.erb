@@ -1,48 +1,64 @@
-<p id="notice"><%= notice %></p>
-
-<%= link_to 'Index', pictures_path %>
-
 <div>
-  <%= image_tag @picture.image.url, width: '300px' %>
 </div>
 
-<h2>Euklidovská vzdialenosť</h2>
-<table>
-  <thead>
-  <tr>
-    <th>Náhľad</th>
-    <th>Počet bodov</th>
-    <th>Počet %</th>
-  </tr>
-  </thead>
-  <tbody>
-  <% Picture.all.each do |p| %>
-      <% result = @picture.match(p) %>
-      <tr>
-        <td><%= link_to (image_tag p.image.url, width: '75px'), p %></td>
-        <td><%= result[:cnt] %> bodov
-          z <%= @picture.interest_points.count %></td>
-        <td><%= (result[:perc] * 100).round(2) %>%</td>
-      </tr>
-  <% end %>
-  </tbody>
-</table>
+<% if params[:method] == 'euclidean' %>
+    <h2>Preview</h2>
+    <div class="ui card">
+      <div class="ui image">
+        <%= image_tag @picture.image.url, width: '300px' %>
+      </div>
+      <div class="content">
+        <a class="header"><%= @picture.image.original_filename %></a>
+        <div class="meta">
+          <span class="date">Interest Point count: <%= @picture.interest_points.count %></span>
+        </div>
+      </div>
+    </div>
 
-<h2>SQFT</h2>
-<table>
-  <thead>
-  <tr>
-    <th>Náhľad</th>
-    <th>Počet %</th>
-  </tr>
-  </thead>
-  <tbody>
-  <% Picture.all.each do |p| %>
-      <% result = @picture.match(p) %>
+    <h2>Nearest results (threshold: <%= @threshold %>)</h2>
+    <div class="ui six special cards">
+      <% @pictures.each do |p| %>
+          <div class="card">
+            <div class="blurring dimmable image">
+              <div class="ui dimmer">
+                <div class="content">
+                  <div class="center">
+                    <%= (p.m[:perc] * 100).round(2) %>%
+                    <%= link_to 'Show', picture_path(p, method: params[:method], threshold: @threshold), class: 'ui teal inverted button' %>
+                  </div>
+                </div>
+              </div>
+              <%= image_tag p.image.url %>
+            </div>
+            <%= link_to 'Compare', picture_path(p, method: params[:method], threshold: @threshold), class: 'ui yellow bottom attached button' %>
+          </div>
+      <% end %>
+    </div>
+<% elsif params[:method] == 'sqft' %>
+    <h2>SQFT</h2>
+    <table>
+      <thead>
       <tr>
-        <td><%= link_to (image_tag p.image.url, width: '75px'), p %></td>
-        <td><%= (@picture.match_sqft(p) * 100).round(2) %>%</td>
+        <th>Náhľad</th>
+        <th>Počet %</th>
       </tr>
-  <% end %>
-  </tbody>
-</table>
+      </thead>
+      <tbody>
+      <% Picture.all.each do |p| %>
+          <% result = @picture.match(p) %>
+          <tr>
+            <td><%= link_to (image_tag p.image.url, width: '75px'), p %></td>
+            <td><%= (@picture.match_sqft(p) * 100).round(2) %>%</td>
+          </tr>
+      <% end %>
+      </tbody>
+    </table>
+<% else %>
+    <div class="ui icon red message">
+      <i class="remove icon"></i>
+      <div class="content">
+        <div class="header">Nastal problém pri zobrazovaní výsledku:</div>
+        Vybraná metóda nebola rozpoznaná
+      </div>
+    </div>
+<% end %>

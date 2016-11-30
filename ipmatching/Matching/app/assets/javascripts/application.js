@@ -12,5 +12,24 @@
 //
 //= require jquery
 //= require jquery_ujs
-//= require turbolinks
+//= require semantic-ui
+//= require dropzone
 //= require_tree .
+
+$(document).ready(function () {
+
+    $("#new_upload").dropzone({
+        parallelUploads: 1,
+        paramName: "picture[image]",
+        acceptedFiles: '.jpg, .jpeg',
+
+        addRemoveLinks: true,
+        success: function (file) {
+            // grap the id of the uploaded file we set earlier
+            var id = $(file.previewTemplate).find('.dz-remove').attr('id');
+            var url = '/pictures/' + id;
+            window.location.href = '/pictures/second';
+        }
+
+    });
+});

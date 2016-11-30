@@ -1,31 +1,23 @@
-<p id="notice"><%= notice %></p>
-
 <h1>Listing Pictures</h1>
 
-<table>
-  <thead>
-    <tr>
-      <th>Content</th>
-      <th>IPs</th>
-      <th>Clusters</th>
-      <th colspan="3"></th>
-    </tr>
-  </thead>
-
-  <tbody>
-    <% @pictures.each do |picture| %>
-      <tr>
-        <td><%= image_tag picture.image.url, width: '75px' %></td>
-        <td><%= picture.interest_points.count %></td>
-        <td><%= picture.cluster.count %></td>
-        <td><%= link_to 'Show', picture %></td>
-        <td><%= link_to 'Edit', edit_picture_path(picture) %></td>
-        <td><%= link_to 'Destroy', picture, method: :delete, data: { confirm: 'Are you sure?' } %></td>
-      </tr>
-    <% end %>
-  </tbody>
-</table>
-
-<br>
-
-<%= link_to 'New Picture', new_picture_path %>
+<div class="ui five special cards">
+  <% @pictures.each do |p| %>
+      <div class="card">
+        <div class="blurring dimmable image">
+          <div class="ui dimmer">
+            <div class="content">
+              <div class="center">
+                Interest Point count: <%= p.interest_points.count %><br>
+                Cluster count: <%= p.cluster.count %><br>
+                <div class="ui inverted buttons">
+                <%= link_to 'Show', picture_path(p, method: 'euclidean', threshold: @threshold), class: 'ui teal button' %>
+                <%= link_to 'Destroy', p, method: :delete, data: { confirm: 'Are you sure?' }, class: 'ui red button' %>
+                </div>
+              </div>
+            </div>
+          </div>
+          <%= image_tag p.image.url %>
+        </div>
+      </div>
+  <% end %>
+</div>

@@ -5,6 +5,7 @@ class Picture < ActiveRecord::Base
   validates_attachment_content_type :image, content_type: /\Aimage\/.*\z/
 
   attr_accessor :cluster
+  attr_accessor :m
 
   has_many :interest_points
   after_save :analyze_ips
@@ -30,7 +31,7 @@ class Picture < ActiveRecord::Base
     result = { cnt: 0, perc: 0.0 }
     interest_points.each do |ip|
       first, second = partial_match(ip, other_picture.interest_points)
-      if first / second <= threshold # || partial_result.first[1] == 0 # Najde 1 identicky bod
+      if first / second <= threshold || first == 0 # || partial_result.first[1] == 0 # Najde 1 identicky bod
         result[:cnt] += 1
       end
     end
