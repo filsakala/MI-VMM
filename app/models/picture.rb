@@ -19,7 +19,7 @@ class Picture < ActiveRecord::Base
     end
   end
 
-  def partial_match(my_point, other_points)
+  def partial_match_b(my_point, other_points)
     partial_result = []
     semaphore = Mutex.new
     todos = other_points.to_a
@@ -59,7 +59,7 @@ class Picture < ActiveRecord::Base
     [partial_result[0], partial_result[1]]
   end
 
-  def partial_match_b(my_point, other_points)
+  def partial_match(my_point, other_points)
     partial_result = []
     other_points.each do |oip|
       partial_result << euclidean_distance(my_point, oip)
