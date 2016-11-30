@@ -53,7 +53,6 @@ class Picture < ActiveRecord::Base
       end
       partial_result = partial_result + my_results
     end
-
     threads.each { |t| t.join }
 
     partial_result.sort!
