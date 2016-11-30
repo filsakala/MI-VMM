@@ -21,6 +21,47 @@ class Picture < ActiveRecord::Base
 
   def partial_match(my_point, other_points)
     partial_result = []
+    semaphore = Mutex.new
+    todos = other_points.to_a
+
+    threads = []
+    threads << Thread.new do
+      my_results = []
+      todos[0...(todos.size / 4)].each do |oip|
+        my_results << euclidean_distance(my_point, oip)
+      end
+      partial_result = partial_result + my_results
+    end
+    threads << Thread.new do
+      my_results = []
+      todos[(todos.size / 4)...(2 * todos.size / 4)].each do |oip|
+        my_results << euclidean_distance(my_point, oip)
+      end
+      partial_result = partial_result + my_results
+    end
+    threads << Thread.new do
+      my_results = []
+      todos[(2 * todos.size / 4)...(3 * todos.size / 4)].each do |oip|
+        my_results << euclidean_distance(my_point, oip)
+      end
+      partial_result = partial_result + my_results
+    end
+    threads << Thread.new do
+      my_results = []
+      todos[(3 * todos.size / 4)...todos.size].each do |oip|
+        my_results << euclidean_distance(my_point, oip)
+      end
+      partial_result = partial_result + my_results
+    end
+
+    threads.each { |t| t.join }
+
+    partial_result.sort!
+    [partial_result[0], partial_result[1]]
+  end
+
+  def partial_match_b(my_point, other_points)
+    partial_result = []
     other_points.each do |oip|
       partial_result << euclidean_distance(my_point, oip)
     end
