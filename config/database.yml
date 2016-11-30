@@ -31,5 +31,5 @@ test:
 
 production:
   <<: *default
-  username: bfebf81cb41de8
-  password: 6551ef69
+  username: b023e97e374b02
+  password: 90b51591
