@@ -1,0 +1,28 @@
+<h1>Picture Comparison</h1>
+
+<%= image_tag 'result.jpg', class: 'ui image' %>
+
+<h2>Options</h2>
+<div class="ui bottom attached active tab segment" data-tab="first">
+  <%= form_tag compare_pictures_path(first_id: params[:first_id], second_id: params[:second_id]), class: 'ui form' do %>
+      <label>Euclidean distance threshold:</label>
+      <input type="range" min="0" max="1" value="<%= params[:threshold].blank? ? 0.5 : params[:threshold] %>" step="0.05" id="threshold-changer">
+      <input type="hidden" name="threshold" id="threshold" value="<%= params[:threshold].blank? ? 0.5 : params[:threshold] %>">
+      <span class="ui teal circular label" id="write-threshold"><%= params[:threshold].blank? ? 0.5 : params[:threshold] %></span><br>
+      <div class="three fields">
+        <div class="field">
+          <label>First picture circle color</label>
+          <%= text_field_tag :my_color, params[:my_color].blank? ? '#ff0000' : params[:my_color], class: 'minicolors-input' %>
+        </div>
+        <div class="field">
+          <label>Second picture circle color</label>
+          <%= text_field_tag :other_color, params[:other_color].blank? ? '#ff0000' : params[:other_color], class: 'minicolors-input' %>
+        </div>
+        <div class="field">
+          <label>Match circle&line color</label>
+          <%= text_field_tag :match_color, params[:match_color].blank? ? '#000000' : params[:match_color], class: 'minicolors-input' %>
+        </div>
+      </div>
+      <%= submit_tag "Update", class: 'ui green button' %>
+  <% end %>
+</div>

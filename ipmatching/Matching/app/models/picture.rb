@@ -1,4 +1,5 @@
 require 'matrix'
+require 'rmagick'
 
 class Picture < ActiveRecord::Base
   has_attached_file :image # , default_url: "/images/:style/missing.png"
@@ -41,11 +42,11 @@ class Picture < ActiveRecord::Base
     result
   end
 
-  def match_sqft(other_picture = Picture.second)
+  def match_sqft(other_picture = Picture.second, cluster_threshold = 10)
     if self != other_picture
-      cluster = cluster()
+      cluster = cluster(cluster_threshold)
       cluster.recalculate_centroids
-      other_cluster = other_picture.cluster
+      other_cluster = other_picture.cluster(cluster_threshold)
       other_cluster.recalculate_centroids
       a = []
       w = []
@@ -104,6 +105,78 @@ class Picture < ActiveRecord::Base
       end
     end
     @cluster
+  end
+
+  # Picture combination
+  def circle(gc, x, y)
+    gc.circle x, y, x - 3, y
+  end
+
+  def setup_drawers(my_color = '#ff0000', other_color = '#ff0000', match_color = '#000000')
+    my_color = '#ff0000' if !my_color
+    other_color = '#ff0000' if !other_color
+    match_color = '#000000' if !match_color
+
+    mdraw = Magick::Draw.new
+    mdraw.fill 'none'
+    mdraw.stroke(my_color)
+    mdraw.stroke_width(1)
+
+    odraw = Magick::Draw.new
+    odraw.fill 'none'
+    odraw.stroke(other_color)
+    odraw.stroke_width(1)
+
+    rdraw = Magick::Draw.new
+    rdraw.fill 'none'
+    rdraw.stroke(match_color)
+    rdraw.stroke_width(1)
+    [mdraw, odraw, rdraw]
+  end
+
+  def prepare_picture(image, interest_points, drawer)
+    i = Magick::Image.read(image.path).first
+    interest_points.each do |ip|
+      circle(drawer, ip.x, ip.y)
+    end
+    drawer.draw i
+    i
+  end
+
+  def group_images(first, second, mdraw, odraw, rdraw)
+    my_img = prepare_picture(first.image, first.interest_points, mdraw)
+    other_img = prepare_picture(second.image, second.interest_points, odraw)
+    f = Paperclip::Geometry.from_file(first.image)
+    s = Paperclip::Geometry.from_file(second.image)
+    blank_img = Magick::Image.new(f.width + s.width, [f.height, s.height].max) { self.background_color = "white" }
+    blank_img.composite(my_img, 0, 0, Magick::CopyCompositeOp).composite(other_img, f.width, 0, Magick::CopyCompositeOp)
+  end
+
+  def create_combining_picture(other, threshold = 0.5, my_color = '#ff0000', other_color = '#ff0000', match_color = '#000000')
+    mdraw, odraw, rdraw = setup_drawers(my_color, other_color, match_color)
+    result = group_images(self, other, mdraw, odraw, rdraw)
+    my_dim = Paperclip::Geometry.from_file(image)
+
+    # Matching
+    interest_points.each do |ip|
+      partial_result = []
+      other.interest_points.each do |oip|
+        partial_result << { oip: oip, dist: euclidean_distance(ip, oip) }
+      end
+      partial_result.sort! { |x, y| x[:dist] <=> y[:dist] }
+      first = partial_result[0]
+      second = partial_result[1]
+      if first[:dist] / second[:dist] <= threshold || first[:dist] == 0 # || partial_result.first[1] == 0 # Najde 1 identicky bod
+        # line between ip, first and second
+        circle(rdraw, ip.x, ip.y)
+        circle(rdraw, my_dim.width + first[:oip].x, first[:oip].y)
+        rdraw.line ip.x, ip.y, my_dim.width + first[:oip].x, first[:oip].y
+      end
+    end
+    rdraw.draw result
+
+    result.write(Rails.root.join('app', 'assets', 'images', 'result.jpg'))
+    Rails.root.join('app', 'assets', 'images', 'result.jpg')
   end
 
 end

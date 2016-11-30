@@ -11,7 +11,7 @@ class PicturesController < ApplicationController
   # GET /pictures/1.json
   def show
     if params[:method] == 'euclidean'
-      if @threshold.blank?
+      if params[:threshold].blank?
         @threshold = 0.5
       else
         @threshold = params[:threshold].to_f
@@ -21,6 +21,33 @@ class PicturesController < ApplicationController
         picture.m = @picture.match(picture, @threshold)
       end
       @pictures.sort! { |x, y| y.m[:perc] <=> x.m[:perc] }
+    elsif params[:method] == 'sqft'
+      if params[:threshold_sqft].blank?
+        @threshold = 10
+      else
+        @threshold = params[:threshold_sqft].to_i
+      end
+      @pictures = Picture.all.to_a
+      @pictures.each do |picture|
+        picture.m = @picture.match_sqft(picture, @threshold)
+      end
+      @pictures.sort! { |x, y| y.m <=> x.m }
+    end
+  end
+
+  def compare
+    @first = Picture.find(params[:first_id])
+    @second = Picture.find(params[:second_id])
+    if params[:threshold].blank?
+      threshold = 0.5
+    else
+      threshold = params[:threshold].to_f
+    end
+    @result_pic = @first.create_combining_picture(@second, threshold, params[:my_color], params[:other_color], params[:match_color])
+    if !params[:commit].blank?
+      redirect_to compare_pictures_path(first_id: params[:first_id], second_id: params[:second_id],
+                                        threshold: params[:threshold], my_color: params[:my_color],
+                                        other_color: params[:other_color], match_color: params[:match_color])
     end
   end
 
@@ -30,21 +57,24 @@ class PicturesController < ApplicationController
   end
 
   def second
-    @picture = Picture.last
+    if !params[:picture_id].blank?
+      @picture = Picture.find(params[:picture_id])
+    else
+      @picture = Picture.last
+    end
     if !params[:commit].blank?
-      if !params[:threshold].blank?
-        m = 'euclidean'
+      if params[:method] == 'euclidean'
         @threshold = params[:threshold]
         @threshold = 0.5 if @threshold.blank?
-      elsif !params[:threshold_sqft].blank?
-        m = 'sqft'
-        @threshold = params[:threshold_sqft]
+        redirect_to picture_path(@picture, method: params[:method], threshold: @threshold)
+      elsif params[:method] == 'sqft'
+        @threshold = params[:threshold_sqft].to_i
         @threshold = 10 if @threshold.blank?
+        redirect_to picture_path(@picture, method: params[:method], threshold_sqft: @threshold)
       else
-        m = 'unknown'
         @threshold = 0
+        redirect_to picture_path(@picture, method: params[:method], threshold: @threshold)
       end
-      redirect_to picture_path(@picture, method: m, threshold: @threshold)
     end
   end
 
@@ -99,4 +129,5 @@ class PicturesController < ApplicationController
   def picture_params
     params.require(:picture).permit(:image)
   end
+
 end

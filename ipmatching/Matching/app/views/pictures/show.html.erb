@@ -1,17 +1,31 @@
-<div>
-</div>
-
 <% if params[:method] == 'euclidean' %>
-    <h2>Preview</h2>
-    <div class="ui card">
-      <div class="ui image">
-        <%= image_tag @picture.image.url, width: '300px' %>
-      </div>
-      <div class="content">
-        <a class="header"><%= @picture.image.original_filename %></a>
-        <div class="meta">
-          <span class="date">Interest Point count: <%= @picture.interest_points.count %></span>
+    <h1>Similarity type: Euclidean
+      <%= link_to "Go to SQFT", picture_path(@picture, method: 'sqft'), class: 'ui small blue button' %>
+    </h1>
+    <div class="ui two column grid">
+      <div class="column">
+        <h2>Preview</h2>
+        <div class="ui card">
+          <div class="ui image">
+            <%= image_tag @picture.image.url, width: '300px' %>
+          </div>
+          <div class="content">
+            <a class="header"><%= @picture.image.original_filename %></a>
+            <div class="meta">
+              <span class="date">Interest Point count: <%= @picture.interest_points.count %></span>
+            </div>
+          </div>
         </div>
+      </div>
+      <div class="column">
+        <h1>Update options</h1>
+        <%= form_tag second_pictures_path(picture_id: @picture.id, method: 'euclidean'), class: 'ui form' do %>
+            <label>Threshold:</label>
+            <input type="range" min="0" max="1" value="<%= @threshold %>" step="0.05" id="threshold-changer">
+            <input type="hidden" name="threshold" id="threshold" value="<%= @threshold %>">
+            <span class="ui teal circular label" id="write-threshold"><%= @threshold %></span><br>
+            <%= submit_tag "Update", class: 'ui green button' %>
+        <% end %>
       </div>
     </div>
 
@@ -30,30 +44,74 @@
               </div>
               <%= image_tag p.image.url %>
             </div>
-            <%= link_to 'Compare', picture_path(p, method: params[:method], threshold: @threshold), class: 'ui yellow bottom attached button' %>
+            <%= link_to 'Compare', compare_pictures_path(first_id: @picture.id, second_id: p.id), class: 'ui yellow bottom attached button' %>
           </div>
       <% end %>
     </div>
 <% elsif params[:method] == 'sqft' %>
-    <h2>SQFT</h2>
-    <table>
-      <thead>
-      <tr>
-        <th>Náhľad</th>
-        <th>Počet %</th>
-      </tr>
-      </thead>
-      <tbody>
-      <% Picture.all.each do |p| %>
-          <% result = @picture.match(p) %>
-          <tr>
-            <td><%= link_to (image_tag p.image.url, width: '75px'), p %></td>
-            <td><%= (@picture.match_sqft(p) * 100).round(2) %>%</td>
-          </tr>
+    <h1>Similarity type: SQFT
+      <%= link_to "Go to Euclidean", picture_path(@picture, method: 'euclidean'), class: 'ui small blue button' %></h1>
+    <div class="ui two column grid">
+      <div class="column">
+        <h2>Preview</h2>
+        <div class="ui card">
+          <div class="ui image">
+            <%= image_tag @picture.image.url, width: '300px' %>
+          </div>
+          <div class="content">
+            <a class="header"><%= @picture.image.original_filename %></a>
+            <div class="meta">
+              <span class="date">Interest Point count: <%= @picture.interest_points.count %></span><br>
+              <span class="date">Cluster count: <%= @picture.cluster.count %></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="column">
+        <h1>Update options</h1>
+        <%= form_tag second_pictures_path(picture_id: @picture.id, method: 'sqft'), class: 'ui form' do %>
+            <label>Cluster Threshold:</label>
+            <input type="range" min="0" max="15" value="<%= @threshold %>" step="1" id="threshold-changer-sqft">
+            <input type="hidden" name="threshold_sqft" id="threshold_sqft" value="<%= @threshold %>">
+            <span class="ui teal circular label" id="write-threshold-sqft"><%= @threshold %></span><br>
+            <%= submit_tag "Update", class: 'ui green button' %>
+        <% end %>
+      </div>
+    </div>
+
+    <h2>Nearest results (Cluster Threshold: <%= @threshold %>)</h2>
+    <div class="ui six special cards">
+      <% @pictures.each do |p| %>
+          <div class="card">
+            <div class="blurring dimmable image">
+              <div class="ui dimmer">
+                <div class="content">
+                  <div class="center">
+                    <%= (p.m * 100).round(2) %>%
+                    <%= link_to 'Show', picture_path(p, method: params[:method], threshold_sqft: @threshold), class: 'ui teal inverted button' %>
+                  </div>
+                </div>
+              </div>
+              <%= image_tag p.image.url %>
+            </div>
+            <%# link_to 'Compare', compare_pictures_path(first_id: @picture.id, second_id: p.id), class: 'ui yellow bottom attached button' %>
+          </div>
       <% end %>
-      </tbody>
-    </table>
+    </div>
 <% else %>
+    <h2>Preview</h2>
+    <div class="ui card">
+      <div class="ui image">
+        <%= image_tag @picture.image.url, width: '300px' %>
+      </div>
+      <div class="content">
+        <a class="header"><%= @picture.image.original_filename %></a>
+        <div class="meta">
+          <span class="date">Interest Point count: <%= @picture.interest_points.count %></span>
+        </div>
+      </div>
+    </div>
+
     <div class="ui icon red message">
       <i class="remove icon"></i>
       <div class="content">

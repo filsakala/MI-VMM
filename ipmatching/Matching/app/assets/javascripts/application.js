@@ -12,6 +12,8 @@
 //
 //= require jquery
 //= require jquery_ujs
+//= require jquery.minicolors
+//= require jquery.minicolors.simple_form
 //= require semantic-ui
 //= require dropzone
 //= require_tree .

@@ -30,7 +30,6 @@ jQuery ->
     maxRating: 4
   })
 
-
   $('#threshold-changer').on 'mousemove', ->
     $('#write-threshold').html(this.value)
     $('#threshold').val(this.value)
@@ -44,3 +43,5 @@ jQuery ->
   $('.special.cards .image').dimmer({
     on: 'hover'
   });
+
+  $('.minicolors-input').minicolors()

@@ -5,6 +5,8 @@ Rails.application.routes.draw do
     collection do
       get :second
       post :second
+      get :compare
+      post :compare
     end
   end
 
