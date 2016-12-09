@@ -13,7 +13,7 @@ It contains 2 main parts:
 ## Usage
 1. Interest point finder
 ```sh
-$ java -jar "ipmatching/public/ipfinder/dist/semestralka.jar" file1 file2 ...
+$ java -jar "public/ipfinder/dist/semestralka.jar" file1 file2 ...
 ```
 
 Example output:
@@ -29,11 +29,13 @@ Surf Interest Points Finder:
 ```
 
 2. Web app
- 1. Rails installation (gems, ...)
+ 1. Rails installation (ruby, rubygems, ...)
  2. Run rails server
 ```sh
-$ cd ipmatching
+$ cd MI-VMM
+$ bundle install
+$ nano config/database.yml # setup mysql database
+$ rake db:create db:migrate
 $ rails server
 ```
 And show it in your browser (default address is localhost:3000).
-
