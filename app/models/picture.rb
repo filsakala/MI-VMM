@@ -2,7 +2,7 @@ require 'matrix'
 require 'rmagick'
 
 class Picture < ActiveRecord::Base
-  has_attached_file :image # , default_url: "/images/:style/missing.png"
+  has_attached_file :image, styles: { thumb: "160x160#" } # , default_url: "/images/:style/missing.png"
   validates_attachment_content_type :image, content_type: /\Aimage\/.*\z/
 
   attr_accessor :cluster
@@ -17,46 +17,6 @@ class Picture < ActiveRecord::Base
       xy = ips.split(' ')
       interest_points.create(x: xy[0].to_f, y: xy[1].to_f, scale: xy[2].to_f)
     end
-  end
-
-  def partial_match_b(my_point, other_points)
-    partial_result = []
-    semaphore = Mutex.new
-    todos = other_points.to_a
-
-    threads = []
-    threads << Thread.new do
-      my_results = []
-      todos[0...(todos.size / 4)].each do |oip|
-        my_results << euclidean_distance(my_point, oip)
-      end
-      partial_result = partial_result + my_results
-    end
-    threads << Thread.new do
-      my_results = []
-      todos[(todos.size / 4)...(2 * todos.size / 4)].each do |oip|
-        my_results << euclidean_distance(my_point, oip)
-      end
-      partial_result = partial_result + my_results
-    end
-    threads << Thread.new do
-      my_results = []
-      todos[(2 * todos.size / 4)...(3 * todos.size / 4)].each do |oip|
-        my_results << euclidean_distance(my_point, oip)
-      end
-      partial_result = partial_result + my_results
-    end
-    threads << Thread.new do
-      my_results = []
-      todos[(3 * todos.size / 4)...todos.size].each do |oip|
-        my_results << euclidean_distance(my_point, oip)
-      end
-      partial_result = partial_result + my_results
-    end
-    threads.each { |t| t.join }
-
-    partial_result.sort!
-    [partial_result[0], partial_result[1]]
   end
 
   def partial_match(my_point, other_points)
@@ -96,7 +56,7 @@ class Picture < ActiveRecord::Base
       (cluster.centroids + other_cluster.centroids).each_with_index do |ip, i|
         (cluster.centroids + other_cluster.centroids).each_with_index do |oip, j|
           a[i] ||= []
-          a[i][j] = 1 / (1 + Math.sqrt(((ip[:point].x - oip[:point].x) ** 2)+((ip[:point].y - oip[:point].y) ** 2)))
+          a[i][j] = 1 / (1 + euclidean_distance(ip[:point], oip[:point]))
         end
       end
 
@@ -128,7 +88,7 @@ class Picture < ActiveRecord::Base
       @cluster = Cluster.new
       interest_points.each do |ip|
         interest_points.each do |oip|
-          if ip != oip && euclidean_distance(ip, oip) < threshold
+          if ip != oip && euclidean_distance(ip, oip) <= threshold
             cip = @cluster.cluster_of(ip)
             coip = @cluster.cluster_of(oip)
             if cip && coip # join clusters
@@ -142,6 +102,9 @@ class Picture < ActiveRecord::Base
             end
           end
         end
+      end
+      interest_points.each do |ip| # create separate clusters for ip without cluster
+        @cluster.add(ip) if !@cluster.cluster_of(ip)
       end
     end
     @cluster
