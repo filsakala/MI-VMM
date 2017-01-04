@@ -2,187 +2,162 @@ require 'matrix'
 require 'rmagick'
 
 class NeuralNetwork
-  attr_accessor :input, :input_matrix, :hidden, :output
-  attr_accessor :weights_1, :weights_2, :errors, :hidden_errors, :input_errors
-  attr_accessor :weights_1_matrix, :weights_2_matrix
-  attr_accessor :rand, :epoch_cnt, :epoch_act
-  attr_accessor :learning_rate
+  attr_accessor :input, :input_matrix, :hidden, :hidden_without_sigmoid, :output, :output_without_sigmoid # layers
+  attr_accessor :weights_1, :weights_2, :weights_1_matrix, :weights_2_matrix # weights
+  attr_accessor :errors, :hidden_errors, :input_errors # errors
+  attr_accessor :rand, :epoch_cnt, :epoch_act, :learning_rate, :hidden_size # params
 
-  def initialize(image, fname, learning_rate = 5, epoch_cnt = 100)
-    @input = []
-    image.pixels.each do |pixel|
-      @input.push(color_to_i(ChunkyPNG::Color.to_truecolor_bytes(pixel)))
+  # Params: learning_rate (float), epoch_cnt (int), init_input (boolean), hidden_size
+  def initialize(image, fname, params = [5, 100, true, 50])
+    if params.size != 3
+      puts "Wrong params count #{params.size}, should be: [learning_rate, epoch_cnt, init_input?]. Setting default values..."
+      params = [5, 100, true]
     end
-    @rand = Random.new#(1) # Test version = TODO: delete seed!
+    @fname = fname
+    @learning_rate = params[0]
+    @epoch_cnt = params[1]
+    @rand = Random.new # Random seed
 
-    @input = scale(@input)
-    @input_matrix = Matrix.row_vector(@input)
+    # Init input pixel array
+    @input = []
+    image.grayscale! # Convert to grayscale
+    image.pixels.each do |pixel|
+      @input.push(ChunkyPNG::Color.r(pixel)) # RGB are the same
+    end
+
+    init_input if params[2] == true
     init_weights_1
     init_weights_2
-    @epoch_cnt = epoch_cnt
-    @learning_rate = learning_rate
-    @fname = fname
   end
 
-  # Scale input to be in (-10, 10) -- sigmoid activation function for large numbers = 1
-  def scale(ary)
-    max = color_to_i([255, 255, 255])
-    b = ary.map { |i| 0.0 + ((i) * 20 / max) - 10 }
+  def init_input
+    @input.map! { |i| ((i * 1.0) / 255) - 0 } # Scale input to be in (-10, 10) -- sigmoid activation function for large numbers = 1
+    @input_matrix = Matrix.row_vector(@input)
+  end
+
+  def rescale_output!
+    @output.map! { |i| (i * 1) - 0 }
+  end
+
+  def output_to_pixels
+    b = @output.map { |i| (i * 255).round }
     b
   end
 
-  def unscale(ary)
-    max = color_to_i([255, 255, 255])
-    b = ary.map do |i|
-      val = ((((i)+ 10) / 20) * max)
-      val = @rand.rand(20) - 10 if val.nan?
-      val.ceil
-    end
-    b
+  # INIT weights
+  def init_weights_1
+    @weights_1 = Array.new(Math.sqrt(@input.size)) { Array.new(@input.size) { @rand.rand } }
+    @weights_1_matrix = Matrix.columns(@weights_1)
   end
 
-# Get RGB color, return integer value
-def color_to_i(rgb)
-  0.0 + (rgb.first * (16 ** 4)) + (rgb.second * (16 ** 2)) + rgb.third
-end
-
-# Get integer value, return RGB array color
-def i_to_color(number)
-  r = []
-  num = number.to_i
-  while num != 0
-    r << num % 16
-    num /= 16
+  def init_weights_2
+    @weights_2 = Array.new(@input.size) { Array.new(Math.sqrt(@input.size)) { @rand.rand } }
+    @weights_2_matrix = Matrix.columns(@weights_2)
   end
-  r << 0 while r.size < 6 # Fix array size
-  if r.size > 6
-    raise "Array size is too large: #{num} -> #{r}, size: #{r.size}"
+
+  # FORWARD
+  def create_hidden_layer
+    @hidden = (@input_matrix * @weights_1_matrix)
   end
-  [r[5] * 16 + r[4], r[3] * 16 + r[2], r[1] * 16 + r[0]]
-rescue TypeError
-  puts "Problem with number #{num} -> #{r}: #{$!.message}"
-end
 
-# INIT weights
-def init_weights_1
-  @weights_1 = Array.new(Math.sqrt(@input.size)) { Array.new(@input.size) { @rand.rand } }
-  @weights_1_matrix = Matrix.columns(@weights_1)
-end
+  def create_output_layer
+    @output = (@hidden * @weights_2_matrix)
+  end
 
-def init_weights_2
-  @weights_2 = Array.new(@input.size) { Array.new(Math.sqrt(@input.size)) { @rand.rand } }
-  @weights_2_matrix = Matrix.columns(@weights_2)
-end
-
-# FORWARD
-def create_hidden_layer
-  @hidden = (@input_matrix * @weights_1_matrix)
-end
-
-def create_output_layer
-  @output = (@hidden * @weights_2_matrix).collect { |val| ActivationFunction.sigmoid(val) }
-end
-
-def create_output_image(output)
-  image = Magick::Image.new(Math.sqrt(@input.size), Math.sqrt(@input.size))
-  pixels = []
-  (0...Math.sqrt(@input.size)).each do |x|
-    (0...Math.sqrt(@input.size)).each do |y|
-      pixel = i_to_color(output[0, transform_index(x, y, Math.sqrt(@input.size))])
-      rgb = ChunkyPNG::Color.rgb(pixel.first, pixel.second, pixel.third)
-      hsla = ChunkyPNG::Color.to_hsl(rgb, true)
-      # puts "#{pixel} <-> #{hsla}"
-      # sleep(1)
+  def create_output_image(output)
+    image = Magick::Image.new(Math.sqrt(@input.size), Math.sqrt(@input.size))
+    pixels = []
+    (0...@input.size).each do |i|
+      rgb = ChunkyPNG::Color.rgb(output[i], output[i], output[i]) # RGB pixel
+      hsla = ChunkyPNG::Color.to_hsl(rgb) # HSLA pixel
       pixels << Magick::Pixel.from_hsla(hsla.first.abs, (hsla.second * 255).floor, (hsla.third * 255).floor)
     end
+    image.store_pixels(0, 0, Math.sqrt(@input.size), Math.sqrt(@input.size), pixels)
+    image.write(Rails.root.join('app', 'assets', 'images', "#{@fname}_#{@epoch_act}.png"))
   end
-  image.store_pixels(0, 0, Math.sqrt(@input.size), Math.sqrt(@input.size), pixels)
-  image.write(Rails.root.join('app', 'assets', 'images', "#{@fname}_#{@epoch_act}.png"))
-end
 
-# Forward
-def forward
-  puts "1. Forward - Create hidden layer"
-  create_hidden_layer
-  @hidden.collect { |val| ActivationFunction.sigmoid(val) }
-  puts "2. Forward - Create output layer"
-  create_output_layer
-  puts "3. Forward - Unscale & Create output image"
-  create_output_image(unscale(@output))
-  @output = @output.to_a.flatten
-end
-
-def get_output_errors
-  @errors = []
-  @input.each_with_index do |input, index|
-    @errors << (0.0 + input - @output[index])
-    # puts "#{input} - #{@output[index]} = #{@errors.last}"
-    # sleep(2)
+  # FORWARD
+  def forward
+    puts "1. Forward - Create hidden layer"
+    create_hidden_layer
+    @hidden_without_sigmoid = @hidden
+    @hidden = @hidden.collect { |val| ActivationFunction.sigmoid(val) }
+    puts "2. Forward - Create output layer"
+    create_output_layer
+    puts "3. Forward - Repair output pixels & Create output image"
+    @output = @output.to_a.flatten
+    @output_without_sigmoid = @output
+    # @output = @output.map { |val| ActivationFunction.sigmoid(val) }
+    @output = @output.map { |val| ((val * 1.0) / 255) - 0 }
+    create_output_image(output_to_pixels)
+    @output = rescale_output!
   end
-end
 
-def get_hidden_errors
-  @hidden_errors = (@weights_2_matrix * Matrix.column_vector(@errors))
-end
-
-def get_input_errors
-  @input_errors = (@weights_1_matrix * @hidden_errors)
-end
-
-# 2D to 1D index
-def transform_index(x, y, col_size)
-  (x * col_size) + y
-end
-
-def update_input_weights
-  @weights_1.each_with_index do |xval, x|
-    xval.each_index do |y|
-      # print "#{@weights_1[x][y]} ->" if @epoch_act >= 1
-      @weights_1[x][y] += (@learning_rate * @input_errors[x, 0] * ActivationFunction.sigmoid_prime(@hidden[0, x]) * @input[x]) #
-      # puts "#{@weights_1[x][y]} = -||- + (#{@learning_rate} * #{@input_errors[x, 0]} * #{ActivationFunction.sigmoid_prime(@hidden[0, x])} * #{@input[x]}), hidden: #{@hidden[0, x]}" if @epoch_act >= 1
-      # sleep(2) if @epoch_act >= 1
+  def get_output_errors
+    @errors = []
+    @input.each_with_index do |input, index|
+      @errors << (input - @output[index])
     end
   end
-  @weights_1_matrix = Matrix.columns(@weights_1)
-end
 
-def update_hidden_weights
-  @weights_2.each_with_index do |xval, x|
-    xval.each_index do |y|
-      @weights_2[x][y] += (@learning_rate * @errors[x] * ActivationFunction.sigmoid_prime(@output[x]) * @hidden[0, y])
-    end
+  def get_hidden_errors
+    @hidden_errors = (@weights_2_matrix * Matrix.column_vector(@errors))
   end
-  @weights_2_matrix = Matrix.columns(@weights_2)
-end
 
-# Backpropagation of errors
-def backward
-  puts "1. Backward - Get output errors"
-  get_output_errors
-  puts "2. Backward - Get hidden errors"
-  get_hidden_errors
-  puts "3. Backward - Get input errors"
-  get_input_errors
-  puts "4. Backward - Update input weights"
-  update_input_weights
-  puts "5. Backward - Update hidden weights"
-  update_hidden_weights
-end
+  def get_input_errors
+    @input_errors = (@weights_1_matrix * @hidden_errors)
+  end
 
-# Run forward and backward in some number of epochs
-def run
-  # max_learning_rate = @learning_rate
-  # min_learning_rate = 0
-  # (1..@epoch_cnt).each do |epoch|
-  # @learning_rate += (max_learning_rate - min_learning_rate) / @epoch_cnt
-  # @epoch_act = epoch
-  puts "Epoch #{@epoch_act}"
-  puts "Forward"
-  forward
-  puts "Backward"
-  backward
-  # end
-  puts "end"
-end
+  def update_input_weights
+    @weights_1.each_with_index do |xval, x|
+      xval.each_index do |y|
+        print "#{@weights_1[x][y]} ->" if @epoch_act >= 20
+        @weights_1[x][y] += (@learning_rate * @hidden_errors[x, 0] * ActivationFunction.sigmoid_prime(@hidden_without_sigmoid[0, x]) * @input[y]) #
+        puts "#{@weights_1[x][y]} = -||- + (#{@learning_rate} * #{@hidden_errors[x, 0]} * #{ActivationFunction.sigmoid_prime(@hidden_without_sigmoid[0, x])} * #{@input[y]}), hidden: #{@hidden_without_sigmoid[0, x]}" if @epoch_act >= 20
+        sleep(1) if @epoch_act >= 20
+      end
+    end
+    @weights_1_matrix = Matrix.columns(@weights_1)
+  end
+
+  def update_hidden_weights
+    @weights_2.each_with_index do |xval, x|
+      xval.each_index do |y|
+        @weights_2[x][y] += (@learning_rate * @errors[x] * 1 * @hidden[0, y])
+      end
+    end
+    @weights_2_matrix = Matrix.columns(@weights_2)
+  end
+
+  # Backpropagation of errors
+  def backward
+    puts "1. Backward - Get output errors"
+    get_output_errors
+    puts "2. Backward - Get hidden errors"
+    get_hidden_errors
+    puts "3. Backward - Get input errors"
+    get_input_errors
+    puts "4. Backward - Update input weights"
+    update_input_weights
+    puts "5. Backward - Update hidden weights"
+    update_hidden_weights
+  end
+
+  # Run forward and backward in some number of epochs
+  def run
+    # max_learning_rate = 100
+    # min_learning_rate = 0
+    @learning_rate = 1
+    (1..@epoch_cnt).each do |epoch|
+    # @learning_rate -= (max_learning_rate - min_learning_rate) / @epoch_cnt
+    @epoch_act = epoch
+    puts "Epoch #{@epoch_act}"
+    puts "Forward"
+    forward
+    puts "Backward"
+    backward
+    end
+    puts "end"
+  end
 
 end
