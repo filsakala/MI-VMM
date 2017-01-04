@@ -1,0 +1,64 @@
+<h1>Neural networks</h1>
+
+<table class="ui teal table">
+  <thead>
+  <tr>
+    <th>
+      Name
+    </th>
+    <th>
+      Learning rate
+    </th>
+    <th>
+      Repeat cnt
+    </th>
+    <th>
+      Actions
+    </th>
+  </tr>
+  </thead>
+  <tbody>
+  <% @n_networks.each do |n| %>
+      <tr>
+        <td><%= n.name %></td>
+        <td><%= n.learning_rate %></td>
+        <td><%= n.repeat_cnt %></td>
+        <td>
+          <%= link_to n do %>
+              <i class="large blue unhide link icon"></i>
+          <% end %>
+          <%= link_to n, method: :delete, data: { confirm: 'Are you sure?' } do %>
+              <i class="large red remove link icon"></i>
+          <% end %>
+        </td>
+      </tr>
+  <% end %>
+  </tbody>
+</table>
+
+<h2>Create new network</h2>
+<%= form_for(NNetwork.new, html: { class: "ui form" }) do |f| %>
+    <div class="field">
+      <%= f.label :name %>
+      <%= f.text_field :name %>
+    </div>
+    <div class="two fields">
+      <div class="field">
+        <%= f.label :learning_rate %>
+        <%= f.number_field :learning_rate, min: 0, step: 0.05 %>
+      </div>
+      <div class="field">
+        <%= f.label :repeat_cnt %>
+        <%= f.number_field :repeat_cnt, min: 1 %>
+      </div>
+    </div>
+    <%= f.submit "Create", class: 'ui green button' %>
+<% end %>
+
+<h2>Add pictures</h2>
+<%= form_for(Picture.new, html: { multipart: true, class: "dropzone", id: 'new_n_upload' }) do |f| %>
+    <div class="fallback">
+      <%= f.file_field :image %><br>
+      <%= f.submit "Upload" %>
+    </div>
+<% end %>

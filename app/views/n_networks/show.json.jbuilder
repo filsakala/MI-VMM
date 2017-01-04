@@ -1,0 +1,1 @@
+json.partial! "n_networks/n_network", n_network: @n_network

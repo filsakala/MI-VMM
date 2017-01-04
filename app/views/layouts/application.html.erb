@@ -14,31 +14,37 @@
       SURF Picture Similarity Retrieval
       <%= link_to root_path, class: 'pop_up', title: 'Home' do %>
           <i class="ui home link icon"></i>
-      <% end %><%= link_to pictures_path, class: 'pop_up item', title: 'Uploaded pictures list' do %>
+      <% end %>
+      <%= link_to pictures_path, class: 'pop_up item', title: 'Uploaded pictures list' do %>
           <i class="list link icon"></i>
+      <% end %>
+      <%= link_to n_networks_path, class: 'pop_up', title: 'Neural networks' do %>
+          <i class="ui smile link icon"></i>
       <% end %>
     </h1>
   </div>
-  <div class="ui wide ordered top attached steps">
-    <div class="<%= actual(1) %> step">
-      <div class="content">
-        <div class="title">Upload file</div>
-        <div class="description">Choose your picture</div>
+  <% if controller_name == 'pictures' %>
+      <div class="ui wide ordered top attached steps">
+        <div class="<%= actual(1) %> step">
+          <div class="content">
+            <div class="title">Upload file</div>
+            <div class="description">Choose your picture</div>
+          </div>
+        </div>
+        <div class="<%= actual(2) %> step">
+          <div class="content">
+            <div class="title">Options</div>
+            <div class="description">Similarity type and thresholds</div>
+          </div>
+        </div>
+        <div class="<%= actual(3) %> step">
+          <div class="content">
+            <div class="title">Result</div>
+            <div class="description">View the most similar picures</div>
+          </div>
+        </div>
       </div>
-    </div>
-    <div class="<%= actual(2) %> step">
-      <div class="content">
-        <div class="title">Options</div>
-        <div class="description">Similarity type and thresholds</div>
-      </div>
-    </div>
-    <div class="<%= actual(3) %> step">
-      <div class="content">
-        <div class="title">Result</div>
-        <div class="description">View the most similar picures</div>
-      </div>
-    </div>
-  </div>
+  <% end %>
   <div class="ui attached segment">
     <%= yield %>
   </div>

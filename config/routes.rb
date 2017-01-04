@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+
   root "pictures#new"
 
   resources :pictures do
@@ -7,6 +8,17 @@ Rails.application.routes.draw do
       post :second
       get :compare
       post :compare
+    end
+  end
+
+  resources :n_networks do
+    collection do
+      get :second
+      post :second
+    end
+
+    member do
+      get :compare
     end
   end
 

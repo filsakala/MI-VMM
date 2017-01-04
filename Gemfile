@@ -27,7 +27,7 @@ gem 'semantic-ui-sass', github: 'doabit/semantic-ui-sass'
 gem 'rmagick'
 gem 'jquery-minicolors-rails'
 gem 'rails_12factor', group: :production
-
+gem 'chunky_png'
 # Use ActiveModel has_secure_password
 # gem 'bcrypt', '~> 3.1.7'
 

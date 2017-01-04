@@ -2,13 +2,14 @@ require 'matrix'
 require 'rmagick'
 
 class Picture < ActiveRecord::Base
-  has_attached_file :image, styles: { thumb: "160x160#" } # , default_url: "/images/:style/missing.png"
+  has_attached_file :image, styles: { thumb: "50x50#" }
   validates_attachment_content_type :image, content_type: /\Aimage\/.*\z/
 
   attr_accessor :cluster
   attr_accessor :m
 
   has_many :interest_points
+  belongs_to :n_network
   after_save :analyze_ips
 
   def analyze_ips

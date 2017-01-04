@@ -7,11 +7,11 @@
           <div class="ui dimmer">
             <div class="content">
               <div class="center">
-                Interest Point count: <%= p.interest_points.count %><br>
-                Cluster count: <%= p.cluster.count %><br>
+                Interest Point count: <%# p.interest_points.count %><br>
+                Cluster count: <%# p.cluster.count %><br>
                 <div class="ui inverted buttons">
-                  <%= link_to 'Euclidean', picture_path(p, method: 'euclidean', threshold: @threshold), class: 'ui teal button' %>
-                  <%= link_to 'SQFT', picture_path(p, method: 'sqft', threshold: @threshold), class: 'ui teal button' %>
+                  <%# link_to 'Euclidean', picture_path(p, method: 'euclidean', threshold: @threshold), class: 'ui teal button' %>
+                  <%# link_to 'SQFT', picture_path(p, method: 'sqft', threshold: @threshold), class: 'ui teal button' %>
                 </div>
                 <%= link_to 'Destroy', p, method: :delete, data: { confirm: 'Are you sure?' }, class: 'ui red button' %>
               </div>

@@ -1,0 +1,13 @@
+<h1>Network <%= @n_network.name %></h1>
+
+<h5>Learning rate: <%= @n_network.learning_rate %>, Repeat
+  count: <%= @n_network.repeat_cnt %></h5>
+
+<h2>Add picture to compare</h2>
+<%= form_for(Picture.new, html: { multipart: true, class: "dropzone", id: 'new_n_compare_upload' }) do |f| %>
+    <span id="netid" val="<%= @n_network.id %>"></span>
+    <div class="fallback">
+      <%= f.file_field :image %><br>
+      <%= f.submit "Upload" %>
+    </div>
+<% end %>

@@ -23,7 +23,7 @@ $(document).ready(function () {
     $("#new_upload").dropzone({
         parallelUploads: 1,
         paramName: "picture[image]",
-        acceptedFiles: '.jpg, .jpeg',
+        acceptedFiles: '.jpg, .jpeg, .png',
 
         addRemoveLinks: true,
         success: function (file) {
@@ -31,6 +31,36 @@ $(document).ready(function () {
             var id = $(file.previewTemplate).find('.dz-remove').attr('id');
             var url = '/pictures/' + id;
             window.location.href = '/pictures/second';
+        }
+
+    });
+
+    $("#new_n_upload").dropzone({
+        parallelUploads: 1,
+        paramName: "picture[image]",
+        acceptedFiles: '.jpg, .jpeg, .png',
+
+        addRemoveLinks: true,
+        success: function (file) {
+            // grap the id of the uploaded file we set earlier
+            var id = $(file.previewTemplate).find('.dz-remove').attr('id');
+            var url = '/pictures/' + id;
+        }
+
+    });
+
+    $("#new_n_compare_upload").dropzone({
+        parallelUploads: 1,
+        paramName: "picture[image]",
+        acceptedFiles: '.jpg, .jpeg, .png',
+
+        addRemoveLinks: true,
+        success: function (file) {
+            // grap the id of the uploaded file we set earlier
+            var id = $(file.previewTemplate).find('.dz-remove').attr('id');
+            var url = '/pictures/' + id;
+            var netid = $('#netid').attr('val')
+            window.location.href = '/n_networks/' + netid + '/compare';
         }
 
     });

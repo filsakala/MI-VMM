@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20161123132910) do
+ActiveRecord::Schema.define(version: 20161228111654) do
 
   create_table "interest_points", force: :cascade do |t|
     t.integer  "picture_id", limit: 4
@@ -24,7 +24,17 @@ ActiveRecord::Schema.define(version: 20161123132910) do
 
   add_index "interest_points", ["picture_id"], name: "index_interest_points_on_picture_id", using: :btree
 
+  create_table "n_networks", force: :cascade do |t|
+    t.string   "name",          limit: 255
+    t.float    "learning_rate", limit: 24
+    t.integer  "repeat_cnt",    limit: 4
+    t.text     "weights",       limit: 16777215
+    t.datetime "created_at",                     null: false
+    t.datetime "updated_at",                     null: false
+  end
+
   create_table "pictures", force: :cascade do |t|
+    t.integer  "n_network_id",       limit: 4
     t.datetime "created_at",                     null: false
     t.datetime "updated_at",                     null: false
     t.string   "image_file_name",    limit: 255
@@ -32,5 +42,7 @@ ActiveRecord::Schema.define(version: 20161123132910) do
     t.integer  "image_file_size",    limit: 4
     t.datetime "image_updated_at"
   end
+
+  add_index "pictures", ["n_network_id"], name: "index_pictures_on_n_network_id", using: :btree
 
 end
