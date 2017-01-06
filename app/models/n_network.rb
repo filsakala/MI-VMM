@@ -5,7 +5,7 @@ class NNetwork < ActiveRecord::Base
 
   def run_training
     nn = NNTrainer.new
-    ws = nn.run(learning_rate, repeat_cnt)
+    ws = nn.run(learning_rate, repeat_cnt, hidden_size)
     update(weights: ws.to_s)
   end
 end

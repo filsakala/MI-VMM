@@ -4,6 +4,7 @@ class CreateNNetworks < ActiveRecord::Migration
       t.string :name
       t.float :learning_rate
       t.integer :repeat_cnt
+      t.integer :hidden_size
       t.text :weights, limit: 256000
 
       t.timestamps null: false

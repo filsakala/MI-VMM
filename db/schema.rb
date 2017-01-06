@@ -28,6 +28,7 @@ ActiveRecord::Schema.define(version: 20161228111654) do
     t.string   "name",          limit: 255
     t.float    "learning_rate", limit: 24
     t.integer  "repeat_cnt",    limit: 4
+    t.integer  "hidden_size",   limit: 4
     t.text     "weights",       limit: 16777215
     t.datetime "created_at",                     null: false
     t.datetime "updated_at",                     null: false

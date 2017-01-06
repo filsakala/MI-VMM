@@ -1,28 +1,18 @@
 <h1>NN results</h1>
 <h2>Preview</h2>
 <div class="ui card">
-  <div class="ui image">
-    <%= image_tag @picture.image.url, width: '300px' %>
-  </div>
+  <%= image_tag @picture.image.url(:thumb), width: '100px' %>
   <div class="content">
     <a class="header"><%= @picture.image.original_filename %></a>
   </div>
 </div>
 
 <h2>Nearest results</h2>
-<div class="ui five special cards">
+<div class="ui eight special cards">
   <% @result.each do |p, percent| %>
       <div class="card">
-        <div class="blurring dimmable image">
-          <div class="ui dimmer">
-            <div class="content">
-              <div class="center">
-                <%= (percent * 100).round(2) %>%
-              </div>
-            </div>
-          </div>
-          <%= image_tag p.image.url %>
-        </div>
+        <%= image_tag p.image.url(:thumb), size: "100x100" %>
+        <%= (percent * 100).round(2) %>%
       </div>
   <% end %>
 </div>

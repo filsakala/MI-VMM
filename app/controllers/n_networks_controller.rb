@@ -3,7 +3,7 @@ class NNetworksController < ApplicationController
 
   def compare
     @picture = Picture.last
-    pn = NeuralNetwork.new(ChunkyPNG::Image.from_file(@picture.image.path(:thumb)), File.basename(@picture.image.path(:thumb), ".*"), 1, 1)
+    pn = NeuralNetwork.new(ChunkyPNG::Image.from_file(@picture.image.path(:thumb)), File.basename(@picture.image.path(:thumb), ".*"), @n_network.learning_rate, @n_network.repeat_cnt, true, @n_network.hidden_size)
     pn.weights_1 = eval(@n_network.weights)
     pn.weights_1_matrix = Matrix.columns(pn.weights_1)
     pn.create_hidden_layer
@@ -13,7 +13,7 @@ class NNetworksController < ApplicationController
     @result = {}
     Picture.all.each do |picture|
       if picture != @picture
-        n = NeuralNetwork.new(ChunkyPNG::Image.from_file(picture.image.path(:thumb)), File.basename(picture.image.path(:thumb), ".*"), 1, 1)
+        n = NeuralNetwork.new(ChunkyPNG::Image.from_file(picture.image.path(:thumb)), File.basename(picture.image.path(:thumb), ".*"), @n_network.learning_rate, @n_network.repeat_cnt, true, @n_network.hidden_size)
         n.weights_1 = eval(@n_network.weights)
         n.weights_1_matrix = Matrix.columns(n.weights_1)
         n.create_hidden_layer
@@ -21,7 +21,7 @@ class NNetworksController < ApplicationController
 
         errors = []
         pn.hidden.each_with_index do |ph, pi|
-          errors << (ph - n.hidden[pi]) / n.hidden[pi] # Chyba vzhladom na vybrany obr.
+          errors << (ph - n.hidden[pi]) / n.hidden[pi] # Relativna chyba vzhladom na vybrany obr.
         end
         pre = (errors.sum.abs / errors.size) # Priemerna relativna chyba
         if 0.0 <= pre && pre <= 1.0
@@ -103,6 +103,6 @@ class NNetworksController < ApplicationController
 
   # Never trust parameters from the scary internet, only allow the white list through.
   def n_network_params
-    params.require(:n_network).permit(:name, :learning_rate, :repeat_cnt)
+    params.require(:n_network).permit(:name, :learning_rate, :repeat_cnt, :hidden_size)
   end
 end
